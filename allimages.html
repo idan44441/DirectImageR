@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>התמונות שלך מהאירוע</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f1f8e9 100%);
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding-top: 20px;
+        }
+
+        h1 {
+            margin: 20px 0;
+            text-align: center;
+            color: #333;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-gap: 15px;
+            padding: 20px;
+        }
+
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding-top: 100%;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .gallery-item img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        .selection-checkbox {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            border: 2px solid #57d792;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 20;
+        }
+
+        .selection-checkbox.active {
+            opacity: 1;
+        }
+
+        .selection-checkbox::before {
+            content: '';
+            width: 16px;
+            height: 16px;
+            background: #57d792;
+            border-radius: 50%;
+            display: block;
+            opacity: 0;
+        }
+
+        .selection-checkbox.active::before {
+            opacity: 1;
+        }
+
+        .fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .fullscreen img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+
+        .download-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background-color: #57d792;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .download-btn:hover {
+            background-color: #45a049;
+        }
+
+        #downloadSelectedBtnContainer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: none; /* Hide initially */
+        }
+
+        #downloadSelectedBtn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #57d792, #aed581);
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            display: block;
+        }
+
+        #downloadSelectedBtn:hover {
+            background: linear-gradient(45deg, #45a049, #7cb342);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        #downloadSelectedBtn:active {
+            background: linear-gradient(45deg, #388e3c, #558b2f);
+        }
+
+        #selectAllContainer {
+            padding: 20px;
+            text-align: center;
+        }
+
+        #selectAllLabel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #333;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #selectAllCheckbox {
+            position: relative;
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            appearance: none;
+            border: 2px solid #57d792;
+            border-radius: 4px;
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        #selectAllCheckbox:checked {
+            background-color: #57d792;
+            border-color: #57d792;
+        }
+
+        #selectAllCheckbox:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background: #ffffff;
+            transform: translate(-50%, -50%);
+            border-radius: 2px;
+        }
+
+        .circle-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .change-profile-btn {
+            background-color: #57d792;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s, transform 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .change-profile-btn:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+
+        .change-profile-btn:focus {
+            outline: none;
+        }
+
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            #downloadSelectedBtn {
+                font-size: 12px;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="selectAllContainer">
+        <div id="selectAllLabel">
+            <input type="checkbox" id="selectAllCheckbox">
+            <label for="selectAllCheckbox">Select/Deselect All</label>
+        </div>
+    </div>
+
+    <div class="circle-container">
+        <div class="circle">
+            <img id="profileImage" src="" alt="Profile Image">
+        </div>
+        <button class="change-profile-btn" id="changeProfileBtn">Change Profile Image</button>
+        <input type="file" id="profileImageUpload" style="display: none;" />
+    </div>
+
+    <div id="downloadSelectedBtnContainer">
+        <button id="downloadSelectedBtn">Download Selected Images</button>
+    </div>
+
+    <div class="gallery" id="gallery">
+        <!-- Gallery items will be dynamically inserted here -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const gallery = document.getElementById('gallery');
+            const profileImage = document.getElementById('profileImage');
+            const profileImageUpload = document.getElementById('profileImageUpload');
+            const changeProfileBtn = document.getElementById('changeProfileBtn');
+            const downloadSelectedBtn = document.getElementById('downloadSelectedBtn');
+            const downloadSelectedBtnContainer = document.getElementById('downloadSelectedBtnContainer');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            let imageUrls = [];
+
+            function toggleDownloadButtonVisibility() {
+                const anyCheckboxChecked = document.querySelectorAll('.selection-checkbox.active').length > 0;
+                downloadSelectedBtnContainer.style.display = anyCheckboxChecked ? 'block' : 'none';
+            }
+
+            function toggleSelectAll(checked) {
+                document.querySelectorAll('.selection-checkbox').forEach(checkbox => {
+                    if (checked && !checkbox.classList.contains('active')) {
+                        checkbox.classList.add('active');
+                    } else if (!checked && checkbox.classList.contains('active')) {
+                        checkbox.classList.remove('active');
+                    }
+                });
+                toggleDownloadButtonVisibility();
+            }
+
+            gallery.addEventListener('click', function (event) {
+                if (event.target.classList.contains('selection-checkbox')) {
+                    event.target.classList.toggle('active');
+                    toggleDownloadButtonVisibility();
+                } else if (event.target.tagName === 'IMG' && !hasActiveCheckbox()) {
+                    showFullScreenImage(event.target);
+                }
+            });
+
+            downloadSelectedBtn.addEventListener('click', downloadSelectedImages);
+
+            changeProfileBtn.addEventListener('click', () => profileImageUpload.click());
+            profileImageUpload.addEventListener('change', handleProfileImageUpload);
+
+            selectAllCheckbox.addEventListener('change', function () {
+                toggleSelectAll(this.checked);
+            });
+
+            function showFullScreenImage(img) {
+                const fullscreenDiv = document.createElement('div');
+                fullscreenDiv.classList.add('fullscreen');
+                const fullImg = img.cloneNode();
+                fullscreenDiv.appendChild(fullImg);
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = 'Download';
+                downloadBtn.classList.add('download-btn');
+                downloadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    downloadImage(img.src);
+                });
+
+                fullscreenDiv.appendChild(downloadBtn);
+                document.body.appendChild(fullscreenDiv);
+
+                fullscreenDiv.addEventListener('click', (e) => {
+                    if (e.target === fullscreenDiv) {
+                        fullscreenDiv.remove();
+                    }
+                });
+            }
+
+            function downloadImage(url) {
+                fetch(url)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'image.jpg';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(link.href);
+                    })
+                    .catch(error => console.error('Error downloading image:', error));
+            }
+
+            function downloadSelectedImages() {
+                const zip = new JSZip();
+                const imgFolder = zip.folder("selected-images");
+
+                const selectedImages = Array.from(document.querySelectorAll('.gallery-item .selection-checkbox.active')).map(cb => {
+                    return cb.previousElementSibling.src; // Get the src of the img preceding the checkbox
+                });
+
+                const imagePromises = selectedImages.map((imgUrl, index) => {
+                    return fetch(imgUrl)
+                        .then(response => response.blob())
+                        .then(blob => imgFolder.file(`selected-image${index + 1}.jpg`, blob))
+                        .catch(error => console.error('Error fetching image:', error));
+                });
+
+                Promise.all(imagePromises).then(() => {
+                    zip.generateAsync({ type: "blob" }).then(content => {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(content);
+                        link.download = "selected-images.zip";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    });
+                });
+            }
+
+            function handleProfileImageUpload(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('user', file);
+
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success === "ok") {
+                            profileImage.src = data.file_name;
+                            return fetch('/updateuserimage', {
+                                method: 'POST',
+                                body: JSON.stringify({ phoneNumber: userEmail, fileUrl: data.file_name }),
+                                headers: { 'Content-Type': 'application/json' }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    console.log('Profile image updated successfully');
+                                } else {
+                                    console.error('Phone number check failed:', data);
+                                }
+                            });
+                        } else {
+                            throw new Error('Upload failed');
+                        }
+                    })
+                    .catch(error => console.error('Error uploading image:', error));
+                }
+            }
+
+            function getUserEmail() {
+                return localStorage.getItem('userEmail');
+            }
+
+            let userEmail = getUserEmail();
+
+            window.onload = function () {
+                if (userEmail) {
+                    console.log('User Email:', userEmail);
+                    fetch('/userImage', {
+                        method: 'POST',
+                        body: JSON.stringify({ usermail: userEmail }),
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        const userImage = data.imageUrl[0]?.user_name;
+                        if (userImage) {
+                            profileImage.src = userImage;
+                        }
+                    })
+                    .catch(error => console.error('Error fetching user image:', error));
+
+                    fetch('/AlluserImages', {
+                        method: 'POST',
+                        body: JSON.stringify({ usermail: userEmail }),
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        imageUrls = data.imageUrl.map(item => item.path_to_img);
+                        populateGallery();
+                    })
+                    .catch(error => console.error('Error fetching user images:', error));
+                } else {
+                    console.log('No user email found');
+                }
+            };
+
+            function populateGallery() {
+                gallery.innerHTML = ''; // Clear existing gallery items
+
+                imageUrls.forEach((url, index) => {
+                    const galleryItem = document.createElement('div');
+                    galleryItem.className = 'gallery-item';
+
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = `Image ${index + 1}`;
+
+                    const checkbox = document.createElement('div');
+                    checkbox.className = 'selection-checkbox';
+
+                    galleryItem.appendChild(img);
+                    galleryItem.appendChild(checkbox);
+
+                    gallery.appendChild(galleryItem);
+                });
+            }
+
+            function hasActiveCheckbox() {
+                return document.querySelector('.selection-checkbox.active') !== null;
+            }
+
+            toggleDownloadButtonVisibility();
+        });
+    </script>
+</body>
+
+</html>

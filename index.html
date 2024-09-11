@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DirectImage</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="icon" type="image/x-icon" href="public/favicon.ico">
+    <meta name="google-signin-client_id" content="986942959160-faiov2sv5te0qvqi19chfl8bhr2q5u4a.apps.googleusercontent.com">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://connect.facebook.net/en_US/sdk.js" async defer></script>
+    <style>
+        * {
+            font-family: 'Roboto', sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #e0f7fa 0%, #f1f8e9 100%);
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            margin-bottom: 30px;
+        }
+
+        .login-btn {
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: normal;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 5px;
+            width: 200px;
+            height: 32px;
+            line-height: 1.5;
+            border: none;
+            padding: 0;
+        }
+
+        .login-btn img {
+            margin-right: 10px;
+            width: 24px;
+            height: auto;
+        }
+
+        .google-btn {
+            color: #4285f4;
+            background-color: #fff;
+        }
+
+        .google-btn:hover {
+            color: #357ae8;
+            border-color: #357ae8;
+            background-color: #f1f3f4;
+        }
+
+        .facebook-btn {
+            background-color: #1877f2;
+            color: #fff;
+            border: 1px solid #1877f2;
+        }
+
+        .facebook-btn:hover {
+            background-color: #1557b4;
+            border-color: #1557b4;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        #previewImage {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 20px auto;
+            display: none;
+        }
+
+        #uploadButton {
+            width: 120px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: block;
+            margin: 20px auto; /* Center the button */
+        }
+
+        #uploadButton img {
+            width: 100%;
+            height: auto;
+        }
+
+        #uploadButton:hover {
+            transform: scale(1.1);
+        }
+
+        .form-group {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .custom-file-label::after {
+            content: "Browse";
+        }
+
+        .custom-file {
+            text-align: center;
+        }
+
+        #uploadSection {
+            display: none;
+        }
+
+        #user-info-top {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        #user-info-top img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+        }
+
+        #user-info-top p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="user-info-top">
+        <img id="user-profile-picture" alt="Profile Picture">
+        <p id="user-email-top"></p>
+    </div>
+
+    <div class="container">
+        <img src="public/flc_design20240427229203.png" alt="Upload from Camera" style="width: 250px; height: auto;">
+
+        <div class="button-container">
+            <div id="google-signin-button" class="login-btn google-btn">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google Logo">
+                <span>Sign in with Google</span>
+            </div>
+            <button id="facebook-login-button" class="login-btn facebook-btn" onclick="facebookLogin()">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook Logo">
+                <span>Log in with Facebook</span>
+            </button>
+        </div>
+
+        <div id="uploadSection">
+            <form id="uploadForm" enctype="multipart/form-data" style="margin-top: 20px;">
+                <div class="custom-file">
+                    <input type="file" name="userFile" id="userFile" class="custom-file-input" accept="image/*" required>
+                    <label class="custom-file-label" for="userFile">Choose Your Image</label>
+                </div>
+                <img id="previewImage" alt="Preview Image">
+                <button type="button" id="uploadButton">
+                    <img src="public/upload-icon-20606.png" alt="Upload">
+                </button>
+            </form>
+        </div>
+
+        <div id="user-info" style="display: none;">
+            <p id="user-name"></p>
+            <p id="user-email"></p>
+            <img id="user-picture" alt="Profile Picture" style="border-radius: 50%; width: 100px; height: 100px;">
+        </div>
+    </div>
+
+    <script>
+        let userEmail = ''; // Variable to store the user email
+
+        function handleCredentialResponse(response) {
+            const idToken = response.credential;
+
+            fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`)
+                .then(response => response.json())
+                .then(data => {
+                    const picture = data.picture;
+                    userEmail = data.email;
+
+                    document.getElementById('user-profile-picture').src = picture;
+                    document.getElementById('user-email-top').textContent = userEmail;
+                    document.getElementById('user-info-top').style.display = 'block';
+
+                    document.getElementById('user-info').style.display = 'none';
+                    document.getElementById('google-signin-button').style.display = 'none';
+                    document.getElementById('facebook-login-button').style.display = 'none';
+
+                    fetch('/phoneExist', {
+                        method: 'POST',
+                        body: JSON.stringify({ phoneNumber: userEmail }),
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.phoneNumberExists === 1) {
+                            localStorage.setItem('userEmail', userEmail);
+                            window.location.href = 'http://localhost:3000/gallery.html';
+                        } else {
+                            document.getElementById('uploadSection').style.display = 'block';
+                        }
+                    })
+                    .catch(error => console.error('Error checking phone number:', error));
+                })
+                .catch(error => console.error('Error fetching user info:', error));
+        }
+
+        function initializeGSI() {
+            google.accounts.id.initialize({
+                client_id: '986942959160-faiov2sv5te0qvqi19chfl8bhr2q5u4a.apps.googleusercontent.com',
+                callback: handleCredentialResponse
+            });
+            google.accounts.id.renderButton(
+                document.getElementById('google-signin-button'),
+                { theme: 'outline', size: 'medium' }
+            );
+        }
+
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId: '870160114587014',
+                cookie: true,
+                xfbml: true,
+                version: 'v14.0'
+            });
+
+            FB.getLoginStatus(function(response) {
+                statusChangeCallback(response);
+            });
+        };
+
+        (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function statusChangeCallback(response) {
+            if (response.status === 'connected') {
+                fetchUserProfile();
+            } else {
+                document.getElementById('user-info').style.display = 'none';
+                document.getElementById('user-info-top').style.display = 'none';
+                document.getElementById('uploadSection').style.display = 'none';
+                document.getElementById('google-signin-button').style.display = 'block';
+                document.getElementById('facebook-login-button').style.display = 'block';
+            }
+        }
+
+        function fetchUserProfile() {
+            FB.api('/me', { fields: 'first_name,last_name,email,picture' }, function(response) {
+                userEmail = response.email;
+                document.getElementById('user-profile-picture').src = response.picture.data.url;
+                document.getElementById('user-email-top').textContent = userEmail;
+                document.getElementById('user-info-top').style.display = 'block';
+
+                document.getElementById('user-info').style.display = 'none';
+
+                fetch('/phoneExist', {
+                    method: 'POST',
+                    body: JSON.stringify({ phoneNumber: userEmail }),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.phoneNumberExists === 1) {
+                        localStorage.setItem('userEmail', userEmail);
+                        window.location.href = 'http://localhost:3000/gallery.html';
+                    } else {
+                        document.getElementById('uploadSection').style.display = 'block';
+                    }
+                })
+                .catch(error => console.error('Error checking phone number:', error));
+
+                document.getElementById('google-signin-button').style.display = 'none';
+                document.getElementById('facebook-login-button').style.display = 'none';
+            });
+        }
+
+        function facebookLogin() {
+            FB.login(function(response) {
+                statusChangeCallback(response);
+            }, { scope: 'public_profile,email' });
+        }
+
+        document.getElementById('uploadButton').addEventListener('click', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData();
+            const file = document.getElementById('userFile').files[0];
+
+            if (file) {
+                formData.append('user', file);
+            } else {
+                console.error('No file selected');
+                return;
+            }
+
+            formData.append('phoneNumber', userEmail);
+
+            fetch('/phoneExist', {
+                method: 'POST',
+                body: JSON.stringify({ phoneNumber: userEmail }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.phoneNumberExists === 0) {
+                    return fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success === "ok") {
+                            return fetch('/check', {
+                                method: 'POST',
+                                body: JSON.stringify({ phoneNumber: userEmail, fileUrl: data.file_name }),
+                                headers: { 'Content-Type': 'application/json' }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    localStorage.setItem('userEmail', userEmail);
+                                    window.location.href = 'http://localhost:3000/gallery.html';
+                                } else {
+                                    console.error('Phone number check failed:', data);
+                                }
+                            });
+                        } else {
+                            throw new Error('Upload failed');
+                        }
+                    })
+                    .catch(error => console.error('Error uploading file:', error));
+                } else {
+                    throw new Error('Email Exist');
+                }
+            })
+            .catch(error => console.error('Error checking phone number:', error));
+        });
+
+        function previewImage(event) {
+            var input = event.target;
+            var reader = new FileReader();
+            reader.onload = function() {
+                var imgElement = document.getElementById('previewImage');
+                imgElement.src = reader.result;
+                imgElement.style.display = 'block';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        document.getElementById('userFile').addEventListener('change', previewImage);
+
+        window.onload = initializeGSI;
+    </script>
+</body>
+
+</html>
