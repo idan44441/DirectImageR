@@ -234,7 +234,7 @@
                     .then(data => {
                         if (data.phoneNumberExists === 1) {
                             localStorage.setItem('userEmail', userEmail);
-                            window.location.href = 'http://localhost:3000/gallery.html';
+                            window.location.href = 'https://di.directimage.online/gallery.html';
                         } else {
                             document.getElementById('uploadSection').style.display = 'block';
                         }
@@ -306,7 +306,7 @@
                 .then(data => {
                     if (data.phoneNumberExists === 1) {
                         localStorage.setItem('userEmail', userEmail);
-                        window.location.href = 'http://localhost:3000/gallery.html';
+                        window.location.href = 'https://di.directimage.online/gallery.html';
                     } else {
                         document.getElementById('uploadSection').style.display = 'block';
                     }
@@ -363,7 +363,7 @@
                             .then(data => {
                                 if (data.success) {
                                     localStorage.setItem('userEmail', userEmail);
-                                    window.location.href = 'http://localhost:3000/gallery.html';
+                                    window.location.href = 'https://di.directimage.online/gallery.html';
                                 } else {
                                     console.error('Phone number check failed:', data);
                                 }
