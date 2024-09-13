@@ -361,6 +361,7 @@
                             })
                             .then(response => response.json())
                             .then(data => {
+                                console.log(data);
                                 if (data.success) {
                                     localStorage.setItem('userEmail', userEmail);
                                     window.location.href = 'https://di.directimage.online/gallery.html';
