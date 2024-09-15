@@ -17,7 +17,7 @@ pool.getConnection((err, connection) => {
         return;
     }
 
-    console.log('Connected to database');
+    console.log('Connected - to database');
 
     // Use the connection for querying
 

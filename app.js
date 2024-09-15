@@ -21,6 +21,7 @@ aws.config.update({
 });
 
 const BUCKET_NAME = process.env.BUCKET_NAME;
+const BUCKET_NAME_photographe = process.env.BUCKET_NAME_photographer
 const s3 = new aws.S3();
 
 const upload1 = multer({
@@ -63,7 +64,7 @@ _app.post("/check", (req, resp) => {
 
     // Check if the phone number already exists
     db.query(
-        "SELECT * FROM users WHERE user_phone = ?",
+        "SELECT * FROM users WHERE user_email = ?",
         [phoneNumber],
         (err, result) => {
             if (err) {
@@ -78,7 +79,7 @@ _app.post("/check", (req, resp) => {
 
             // Proceed with insertion if phone number does not exist
             db.query(
-                "INSERT INTO `users` (`user_phone`, `user_name`) VALUES (?, ?)",
+                "INSERT INTO `users` (`user_email`, `user_img_path`) VALUES (?, ?)",
                 [phoneNumber, fileUrl],
                 (err, result) => {
                     if (err) {
@@ -100,7 +101,7 @@ _app.post("/updateuserimage", (req, resp) => {
     const fileUrl = req.body.fileUrl;
 
     // Parameterized query to avoid SQL injection
-    const query = "UPDATE users SET user_name = ? WHERE user_phone = ?";
+    const query = "UPDATE users SET user_img_path = ? WHERE user_email = ?";
     const values = [fileUrl, phoneNumber];
 
     db.query(query, values, (err, result) => {
@@ -169,7 +170,7 @@ _app.post("/phoneExist", async (req, res) => {
         console.log(phoneNumber1);
 
         // Using parameterized query to prevent SQL injection
-        db.query(`SELECT * FROM users WHERE user_phone = '${phoneNumber1}'`, (err, result) => {
+        db.query(`SELECT * FROM users WHERE user_email = '${phoneNumber1}'`, (err, result) => {
             if (err) {
                 console.error("Error executing SQL query:", err);
                 res.status(500).send("Internal server error");
@@ -204,7 +205,7 @@ _app.post("/userImage", async (req, res) => {
         console.log(phoneNumber1);
 
         // Using parameterized query to prevent SQL injection
-        db.query(`SELECT user_name FROM users WHERE user_phone = '${phoneNumber1}'`, (err, result) => {
+        db.query(`SELECT user_img_path FROM users WHERE user_email = '${phoneNumber1}'`, (err, result) => {
             if (err) {
                 console.error("Error executing SQL query:", err);
                 res.status(500).send("Internal server error");
@@ -521,13 +522,14 @@ _app.get("/list", async (req, res) => {
 _app.get("/download/:filename", async (req, res) => {
     const filename = req.params.filename;
     try {
-        let x = await s3.getObject({ Bucket: BUCKET_NAME, Key: filename }).promise();
+        let x = await s3.getObject({ Bucket: BUCKET_NAME_photographe, Key: filename }).promise();
         res.send(x.Body);
     } catch (error) {
         console.error(error);
         res.status(404).send("File Not Found");
     }
 });
+
 
 _app.delete("/delete/:filename", async (req, res) => {
     const filename = req.params.filename;

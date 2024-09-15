@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download File</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button id="downloadButton">Download Image</button>
+
+    <script>
+        document.getElementById('downloadButton').addEventListener('click', function() {
+            const filename = 'idan.jpg';
+            // Construct the URL to request the file from your server
+            const url = `/download/${filename}`;
+            
+            // Create a temporary link element
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+
+            // Append the link to the body (required for Firefox)
+            document.body.appendChild(link);
+
+            // Programmatically click the link to trigger the download
+            link.click();
+
+            // Remove the link from the document
+            document.body.removeChild(link);
+        });
+    </script>
+</body>
+</html>
