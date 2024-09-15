@@ -21,7 +21,7 @@ aws.config.update({
 });
 
 const BUCKET_NAME = process.env.BUCKET_NAME;
-const BUCKET_NAME_photographe = process.env.BUCKET_NAME_photographer
+const BUCKET_NAME_photographer = process.env.BUCKET_NAME_photographer
 const s3 = new aws.S3();
 
 const upload1 = multer({
@@ -239,7 +239,7 @@ _app.post("/userImages", async (req, res) => {
         console.log(phoneNumber1);
 
         // Using parameterized query to prevent SQL injection
-        db.query(`select path_to_img from matches where user_email='${phoneNumber1}'`, (err, result) => {
+        db.query(`select path_to_img,file_name from matches where user_email='${phoneNumber1}'`, (err, result) => {
             if (err) {
                 console.error("Error executing SQL query:", err);
                 res.status(500).send("Internal server error");
@@ -522,7 +522,7 @@ _app.get("/list", async (req, res) => {
 _app.get("/download/:filename", async (req, res) => {
     const filename = req.params.filename;
     try {
-        let x = await s3.getObject({ Bucket: BUCKET_NAME_photographe, Key: filename }).promise();
+        let x = await s3.getObject({ Bucket: BUCKET_NAME_photographer, Key: filename }).promise();
         res.send(x.Body);
     } catch (error) {
         console.error(error);
